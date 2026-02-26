@@ -1,0 +1,30 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for TODO comments
+        run: |
+          if grep -r "TODO" --include="*.txt" --include="*.py" --include="*.js" .; then
+            echo "Found TODO comments! Please fix them."
+            exit 1
+          else
+            echo "No TODO comments found!"
+          fi
+
+      - name: Check files exist
+        run: |
+          echo "Files in repo:"
+          ls -la
+          echo "CI check passed!"
