@@ -51,11 +51,12 @@ jobs:
 
       - name: docker build and push
         run: |
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           docker build \
-            -t ghcr.io/${{ github.repository }}/cicd-demo:${{ github.sha }} \
-            -t ghcr.io/${{ github.repository }}/cicd-demo:latest \
+            -t ghcr.io/$REPO/cicd-demo:${{ github.sha }} \
+            -t ghcr.io/$REPO/cicd-demo:latest \
             .
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            docker push ghcr.io/${{ github.repository }}/cicd-demo:${{ github.sha }}
-            docker push ghcr.io/${{ github.repository }}/cicd-demo:latest
+            docker push ghcr.io/$REPO/cicd-demo:${{ github.sha }}
+            docker push ghcr.io/$REPO/cicd-demo:latest
           fi
