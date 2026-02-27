@@ -10,6 +10,10 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,8 +27,36 @@ jobs:
             echo "No TODO comments found!"
           fi
 
-      - name: Check files exist
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
         run: |
-          echo "Files in repo:"
-          ls -la
-          echo "CI check passed!"
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Run tests
+        run: |
+          pytest python/test
+
+      - name: docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: docker build and push
+        run: |
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker build \
+            -t ghcr.io/$REPO/cicd-demo:${{ github.sha }} \
+            -t ghcr.io/$REPO/cicd-demo:latest \
+            .
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            docker push ghcr.io/$REPO/cicd-demo:${{ github.sha }}
+            docker push ghcr.io/$REPO/cicd-demo:latest
+          fi
